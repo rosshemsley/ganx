@@ -1,20 +1,20 @@
 # 🕵️‍♀️ ganx
 
-_Let's try and implement a gan using jax_
-⚠️ Nothing in this repo is usable yet ⚠️
+Let's try and implement a wgan-gp using jax and haiku.
 
-## 💾  Install the package
+⚠️ _Nothing in this repo is usable yet_ ⚠️
+
+## 💾  Install
 ```
-pip install git+https://github.com/rosshemsley/ganx
+$ pip install git+https://github.com/rosshemsley/ganx
 ```
 
 
-## 🚂  Train the net
+## 🚂  Train
 ```
 $ python -m ganx.cli.train
 ```
 
-or from a virtualenv with the package installed
+Or, from a virtualenv with the package installed,
 ```
 $ train
-```
