@@ -6,7 +6,7 @@ import jax.nn as nn
 from omegaconf import DictConfig
 
 
-class Descriminator(hk.Module):
+class Critic(hk.Module):
     def __init__(self, cfg: DictConfig) -> None:
         super().__init__()
         self.latent_dims = cfg.model.latent_dims
