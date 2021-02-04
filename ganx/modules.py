@@ -29,32 +29,38 @@ class Generator(hk.Module):
         ...
 
 
-def _latent_decoder(latent_dims: int) ->  Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential([
-        hk.Linear(self.latent_dims),
-        nn.relu,
-    ])
+def _latent_decoder(latent_dims: int) -> Callable[jnp.ndarray, jnp.ndarray]:
+    return nn.Sequential(
+        [
+            hk.Linear(self.latent_dims),
+            nn.relu,
+        ]
+    )
 
 
 def _to_rgb() -> Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential([
-        hk.Conv2D(
-            output_channels=3,
-            kernel_shape=1,
-            stride=1,
-            padding=0,
-        ),
-        nn.tanh,
-    ])
+    return nn.Sequential(
+        [
+            hk.Conv2D(
+                output_channels=3,
+                kernel_shape=1,
+                stride=1,
+                padding=0,
+            ),
+            nn.tanh,
+        ]
+    )
 
 
 def _feature_extractor(channels: int) -> Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential([
-        _conv(channels)
-        nn.relu,
-        _conv(channels)
-        nn.relu,
-    ])
+    return nn.Sequential(
+        [
+            _conv(channels),
+            nn.relu,
+            _conv(channels),
+            nn.relu,
+        ]
+    )
 
 
 def _conv(out_channels: int) -> Callable[jnp.ndarray, jnp.ndarray]:
