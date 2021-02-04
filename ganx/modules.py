@@ -1,18 +1,21 @@
+from typing import Callable
+
+from omegaconf import DictConfig
 import haiku as hk
 import jax.numpy as jnp
 import jax
 import jax.nn as nn
 
-from omegaconf import DictConfig
-
 
 class Critic(hk.Module):
     def __init__(self, cfg: DictConfig) -> None:
+        print("init was called")
         super().__init__()
         self.latent_dims = cfg.model.latent_dims
         self.conv_channels = cfg.model.conv_channels
 
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
+        print("call was called")
         decoder = _latent_decoder(self.latent_dims)
         feature_extractor = _feature_extractor(self.conv_channels)
         to_rgb = _to_rgb()
@@ -29,8 +32,12 @@ class Generator(hk.Module):
         ...
 
 
-def _latent_decoder(latent_dims: int) -> Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential(
+def random_latent_vectors(key: jnp.ndarray, n: int, cfg: DictConfig) -> jnp.ndarray:
+    return jax.random.normal(key, shape=(n, cfg.model.latent_dims))
+
+
+def _latent_decoder(latent_dims: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
+    return hk.Sequential(
         [
             hk.Linear(self.latent_dims),
             nn.relu,
@@ -38,8 +45,8 @@ def _latent_decoder(latent_dims: int) -> Callable[jnp.ndarray, jnp.ndarray]:
     )
 
 
-def _to_rgb() -> Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential(
+def _to_rgb() -> Callable[[jnp.ndarray], jnp.ndarray]:
+    return hk.Sequential(
         [
             hk.Conv2D(
                 output_channels=3,
@@ -52,8 +59,8 @@ def _to_rgb() -> Callable[jnp.ndarray, jnp.ndarray]:
     )
 
 
-def _feature_extractor(channels: int) -> Callable[jnp.ndarray, jnp.ndarray]:
-    return nn.Sequential(
+def _feature_extractor(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
+    return hk.Sequential(
         [
             _conv(channels),
             nn.relu,
@@ -63,7 +70,7 @@ def _feature_extractor(channels: int) -> Callable[jnp.ndarray, jnp.ndarray]:
     )
 
 
-def _conv(out_channels: int) -> Callable[jnp.ndarray, jnp.ndarray]:
+def _conv(out_channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
     return hk.Conv2D(
         output_channels=out_channels,
         kernel_shape=3,

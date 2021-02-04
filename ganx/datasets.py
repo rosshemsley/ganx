@@ -24,6 +24,6 @@ def batch_iterator(batch_size: int, dataset: Sequence[Any]) -> Sequence[Any]:
 
         for k in range(i, min(n, i + batch_size)):
             batch.append(dataset[k])
-        
+
         i += len(batch)
         yield batch

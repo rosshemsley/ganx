@@ -3,10 +3,12 @@ random_seed: 42
 model:
   latent_dims: 512
   conv_channels: 512
+  resolution: [32, 32]
 
 trainer:
   epochs: 20
   batch_size: 32
+  generator_step: 5
 
 opt:
-  learning_rate: 1e-3
+  lr: 1e-3
