@@ -116,7 +116,6 @@ jaxlib = ["jaxlib (>=0.1.49)"]
 reference = "b7348274c24d1faa94c1348d5e9301c0e806b62e"
 type = "git"
 url = "https://github.com/deepmind/dm-haiku"
-
 [[package]]
 category = "main"
 description = "Tree is a library for working with nested data structures."
@@ -369,7 +368,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "bfb846ff430165ac788e3fc28f9fa56fc459929a831cb24ae6fdbe721e3c7649"
+content-hash = "650b0fb337868910626bcd9c7649b61b3ea443543b0fa9552e3f21d5d7b45cd6"
 python-versions = "^3.8"
 
 [metadata.files]
