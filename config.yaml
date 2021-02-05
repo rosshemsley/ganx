@@ -11,4 +11,4 @@ trainer:
   generator_step: 5
 
 opt:
-  lr: 1e-3
+  lr: 1e-4

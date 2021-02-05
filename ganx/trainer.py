@@ -57,11 +57,13 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         f_l = f(critic_params, latent_batch)
         f_x = critic.apply(critic_params, img_batch)
 
-        jacobian_f_l = jax.jacobian(f, argnums=1)(critic_params, latent_batch)
-        jacobian_f_l_flat = grad_f_l.reshape(img_batch.shape[0], -1)
-        gp = jnp.square(1 - jnp.linalg.norm(jacobian_f_l_flat, axis=1))
+        jacobian = jax.jacobian(f, argnums=1)(critic_params, latent_batch)
+        gp = jnp.square(1 - jnp.linalg.norm(jacobian, axis=(1, 2)))
 
-        return jnp.mean(f_l) - jnp.mean(f_x) + jnp.mean(gp)
+        wasserstein_distance = jnp.mean(f_l) - jnp.mean(f_x)
+        gradient_penalty = jnp.mean(gp)
+
+        return wasserstein_distance + gradient_penalty
 
     @jax.jit
     def update_critic(
@@ -93,7 +95,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
         return loss, new_params, opt_state
 
-    generator_params = generator.init(rng, _latent_batch(rng, cfg))
+    generator_params = generator.init(rng, _dummy_latent(cfg))
     critic_params = critic.init(rng, _dummy_image(cfg))
 
     generator_opt_state = generator_opt.init(generator_params)
@@ -101,7 +103,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
     for epoch in range(cfg.trainer.epochs):
         for batch_idx, total_batches, img_batch in _batch_iter(cfg, dataset):
-            latent = _latent_batch(rng, cfg)
+            rng, latent = _latent_batch(rng, cfg)
             loss, critic_params, critic_opt_state = update_critic(
                 img_batch,
                 latent,
@@ -134,10 +136,15 @@ def _dummy_image(cfg: DictConfig) -> ImgBatch:
     return jnp.zeros((cfg.trainer.batch_size, *res, 3))
 
 
+def _dummy_latent(cfg: DictConfig) -> LatentBatch:
+    return jnp.zeros((cfg.trainer.batch_size, cfg.model.latent_dims))
+
+
 def _output_resolution(cfg: DictConfig) -> Tuple[int, int]:
     h, w = cfg.model.base_resolution
     return h * 2 ** 2, w * 2 ** 2
 
 
-def _latent_batch(rng: RNG, cfg: DictConfig) -> LatentBatch:
-    return random_latent_vectors(rng, cfg.trainer.batch_size, cfg)
+def _latent_batch(rng: RNG, cfg: DictConfig) -> Tuple[RNG, LatentBatch]:
+    rng, key = jax.random.split(rng)
+    return rng, random_latent_vectors(key, cfg.trainer.batch_size, cfg)
