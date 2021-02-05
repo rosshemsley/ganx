@@ -40,7 +40,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         generator_params: hk.Params, latent_batch: LatentBatch
     ) -> jnp.ndarray:
 
-        f_l = generator_fn.apply(generator_params, latent_batch)
+        f_l = generator.apply(generator_params, latent_batch)
 
         return -jnp.mean(f_l)
 
@@ -71,7 +71,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         grad = jax.grad(critic_loss)(
             critic_params, generator_params, img_batch, latent_batch
         )
-        upgdates, opt_state = critic_opt.update(grad, opt_state)
+        updates, opt_state = critic_opt.update(grad, opt_state)
         new_params = optax.apply_updates(critic_params, updates)
 
         return new_params, opt_state
@@ -84,7 +84,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
     ) -> Tuple[hk.Params, OptState]:
 
         grad = jax.grad(generator_loss)(params, latent_batch)
-        upgdates, opt_state = generator_opt.update(grad, opt_state)
+        updates, opt_state = generator_opt.update(grad, opt_state)
         new_params = optax.apply_updates(params, updates)
 
         return new_params, opt_state
@@ -114,14 +114,21 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 )
 
 
-def _batch_iter(cfg, dataset) -> Iterable[jnp.ndarray]:
+def _batch_iter(cfg: DictConfig, dataset: Sequence[jnp.ndarray]) -> Iterable[jnp.ndarray]:
+    res = _output_resolution(cfg)
     for b in batch_iterator(cfg.trainer.batch_size, dataset):
-        yield b
+        n, _, __, c = b.shape
+        yield jax.image.resize(b, shape=(n, *res, c), method="bilinear")
 
 
 def _dummy_image(cfg: DictConfig) -> ImgBatch:
+    res = _output_resolution(cfg)
+    return jnp.zeros((cfg.trainer.batch_size, *res, 3))
+
+
+def _output_resolution(cfg: DictConfig) -> Tuple[int, int]:
     h, w = cfg.model.base_resolution
-    return jnp.zeros((cfg.trainer.batch_size, h * 2**2, w * 2**2, 3))
+    return h * 2**2, w * 2**2
 
 
 def _latent_batch(rng: RNG, cfg: DictConfig):
