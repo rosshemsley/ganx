@@ -98,8 +98,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
     critic_opt_state = critic_opt.init(critic_params)
 
     for epoch in range(cfg.trainer.epochs):
-        for batch_idx, img_batch in enumerate(_batch_iter(cfg, dataset)):
-            print(f"batch {batch_idx}")
+        for batch_idx, total_batches, img_batch in _batch_iter(cfg, dataset):
 
             latent = _latent_batch(rng, cfg)
             loss, critic_params, critic_opt_state = update_critic(
@@ -110,7 +109,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 critic_opt_state,
             )
 
-            print("loss", loss)
+            print(f"({batch_idx}/{total_batches}) loss: {loss}")
 
             if batch_idx % cfg.trainer.generator_step == 0:
                 loss, generator_params, generator_opt_state = update_generator(
@@ -122,9 +121,11 @@ def _batch_iter(
     cfg: DictConfig, dataset: Sequence[jnp.ndarray]
 ) -> Iterable[jnp.ndarray]:
     res = _output_resolution(cfg)
-    for b in batch_iterator(cfg.trainer.batch_size, dataset):
+    n_batches = len(dataset) // cfg.trainer.batch_size
+
+    for i, b in enumerate(batch_iterator(cfg.trainer.batch_size, dataset)):
         n, _, __, c = b.shape
-        yield jax.image.resize(b, shape=(n, *res, c), method="bilinear")
+        yield i, n_batches, jax.image.resize(b, shape=(n, *res, c), method="bilinear")
 
 
 def _dummy_image(cfg: DictConfig) -> ImgBatch:
