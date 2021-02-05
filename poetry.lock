@@ -215,6 +215,21 @@ docs = ["sphinx (1.2.3)", "sphinxcontrib-napoleon", "sphinx-rtd-theme", "numpydo
 tests = ["pytest", "pytest-cov", "pytest-pep8"]
 
 [[package]]
+category = "main"
+description = "A gradient processing and optimisation library in JAX."
+name = "optax"
+optional = false
+python-versions = ">=3.6"
+version = "0.0.2"
+
+[package.dependencies]
+absl-py = ">=0.7.1"
+chex = ">=0.0.3"
+jax = ">=0.1.55"
+jaxlib = ">=0.1.37"
+numpy = ">=1.18.0"
+
+[[package]]
 category = "dev"
 description = "Core utilities for Python packages"
 name = "packaging"
@@ -377,7 +392,7 @@ python-versions = "*"
 version = "0.2.5"
 
 [metadata]
-content-hash = "3321d530bc19e1f7b3cdd257f1c8d0d78b9597fb0ad2aaf1da5294f21021de84"
+content-hash = "cd555637318b302ba3ae73695adc9984a15f917babfd9b2fab5a8839c716d691"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -499,6 +514,10 @@ omegaconf = [
 opt-einsum = [
     {file = "opt_einsum-3.3.0-py3-none-any.whl", hash = "sha256:2455e59e3947d3c275477df7f5205b30635e266fe6dc300e3d9f9646bfcea147"},
     {file = "opt_einsum-3.3.0.tar.gz", hash = "sha256:59f6475f77bbc37dcf7cd748519c0ec60722e91e63ca114e68821c0c54a46549"},
+]
+optax = [
+    {file = "optax-0.0.2-py3-none-any.whl", hash = "sha256:6d8ca99a1cf06e753598ea1430a8e1ccd0f8ff5c7b954c44e77f1a3b3515cfb0"},
+    {file = "optax-0.0.2.tar.gz", hash = "sha256:8c09c8df86cd4649fa8a17e21394e1507717c1f852412d007a9222fbe45c8a57"},
 ]
 packaging = [
     {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},

@@ -1,5 +1,7 @@
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, Tuple
 
+
+import optax
 import jax
 import jax.numpy as jnp
 from pathlib import Path
@@ -50,7 +52,9 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         latent_batch: LatentBatch,
     ) -> jnp.ndarray:
 
-        f_l = critic.apply(generator.apply(latent_batch))
+        f_l = critic.apply(
+            critic_params, generator.apply(generator_params, latent_batch)
+        )
         f_x = critic(img_batch)
 
         return jnp.mean(f_l) - jnp.mean(f_x)
@@ -98,7 +102,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
             latent = _latent_batch(rng, cfg)
             critic_params, critic_opt_state = update_critic(
                 img_batch,
-                latent_batch,
+                latent,
                 critic_params,
                 generator_params,
                 critic_opt_state,
@@ -120,7 +124,7 @@ def _batch_to_tensor(batch: Sequence[Image.Image]) -> jnp.ndarray:
 
 
 def _dummy_image(cfg: DictConfig) -> ImgBatch:
-    return jnp.zeros(cfg.trainer.batch_size, *cfg.model.resolution)
+    return jnp.zeros((cfg.trainer.batch_size, *cfg.model.resolution))
 
 
 def _latent_batch(rng: RNG, cfg: DictConfig):
