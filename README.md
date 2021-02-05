@@ -10,7 +10,7 @@ $ pip install git+https://github.com/rosshemsley/ganx
 ```
 
 
-## 🚂  Train
+## 🚅  Train
 ```
 $ python -m ganx.cli.train
 ```
