@@ -68,13 +68,13 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         opt_state: OptState,
     ) -> Tuple[hk.Params, OptState]:
 
-        grad = jax.grad(critic_loss)(
+        loss, grad = jax.value_and_grad(critic_loss)(
             critic_params, generator_params, img_batch, latent_batch
         )
         updates, opt_state = critic_opt.update(grad, opt_state)
         new_params = optax.apply_updates(critic_params, updates)
 
-        return new_params, opt_state
+        return loss, new_params, opt_state
 
     @jax.jit
     def update_generator(
@@ -83,11 +83,11 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         opt_state: OptState,
     ) -> Tuple[hk.Params, OptState]:
 
-        grad = jax.grad(generator_loss)(params, latent_batch)
+        loss, grad = jax.value_and_grad(generator_loss)(params, latent_batch)
         updates, opt_state = generator_opt.update(grad, opt_state)
         new_params = optax.apply_updates(params, updates)
 
-        return new_params, opt_state
+        return loss, new_params, opt_state
 
     generator_params = generator.init(rng, _latent_batch(rng, cfg))
     critic_params = critic.init(rng, _dummy_image(cfg))
@@ -100,16 +100,17 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
             print(f"batch {batch_idx}")
 
             latent = _latent_batch(rng, cfg)
-            critic_params, critic_opt_state = update_critic(
+            loss, critic_params, critic_opt_state = update_critic(
                 img_batch,
                 latent,
                 critic_params,
                 generator_params,
                 critic_opt_state,
             )
+            print("loss", loss)
 
             if batch_idx % cfg.trainer.generator_step == 0:
-                generator_params, generator_opt_state = update_generator(
+                loss, generator_params, generator_opt_state = update_generator(
                     latent, generator_params, generator_opt_state
                 )
 
