@@ -51,15 +51,17 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         img_batch: ImgBatch,
         latent_batch: LatentBatch,
     ) -> jnp.ndarray:
+        def f(critic_params, x):
+            return critic.apply(critic_params, generator.apply(generator_params, x))
 
-        f_l = critic.apply(
-            critic_params, generator.apply(generator_params, latent_batch)
-        )
+        f_l = f(critic_params, latent_batch)
         f_x = critic.apply(critic_params, img_batch)
 
-        # TODO(Ross): gradient penalty... signs.
+        grad_f_l = jax.jacobian(f, argnums=1)(critic_params, latent_batch)
+        grad_f_l_flat = grad_f_l.reshape(img_batch.shape[0], -1)
+        gp = jnp.square(1 - jnp.linalg.norm(grad_f_l_flat, axis=1))
 
-        return jnp.mean(f_l) - jnp.mean(f_x)
+        return jnp.mean(f_l) - jnp.mean(f_x) + jnp.mean(gp)
 
     @jax.jit
     def update_critic(
@@ -99,7 +101,6 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
     for epoch in range(cfg.trainer.epochs):
         for batch_idx, total_batches, img_batch in _batch_iter(cfg, dataset):
-
             latent = _latent_batch(rng, cfg)
             loss, critic_params, critic_opt_state = update_critic(
                 img_batch,
