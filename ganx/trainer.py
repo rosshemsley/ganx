@@ -137,5 +137,5 @@ def _output_resolution(cfg: DictConfig) -> Tuple[int, int]:
     return h * 2 ** 2, w * 2 ** 2
 
 
-def _latent_batch(rng: RNG, cfg: DictConfig):
+def _latent_batch(rng: RNG, cfg: DictConfig) -> LatentBatch:
     return random_latent_vectors(rng, cfg.trainer.batch_size, cfg)

@@ -13,13 +13,11 @@ class Critic(hk.Module):
         self.conv_channels = cfg.model.conv_channels
 
     def __call__(self, img: jnp.ndarray) -> jnp.ndarray:
-        print("img shape", img.shape)
         from_rgb = _from_rgb(self.conv_channels)
         encoder = _encode(self.conv_channels)
         flatten = hk.Linear(1)
 
         x = from_rgb(img)
-        print("after from_rgb", x.shape)
         x = encoder(x)
         return flatten(x.reshape(img.shape[0], -1))
 
@@ -31,7 +29,6 @@ class Generator(hk.Module):
         self.base_resolution = cfg.model.base_resolution
 
     def __call__(self, latent_vector: jnp.ndarray) -> jnp.ndarray:
-        print("latent vector shape", latent_vector.shape)
         from_latent = _latent_decoder(self.base_resolution, self.conv_channels)
         decode = _decode(self.conv_channels)
         to_rgb = _to_rgb()
@@ -53,20 +50,10 @@ def _latent_decoder(
     return hk.Sequential(
         [
             hk.Linear(base_resolution[0] * base_resolution[1] * conv_channels),
-            _tee(lambda x: print("after linear", x.shape)),
             nn.relu,
-            _tee(lambda x: print("after relu", x.shape)),
             lambda x: x.reshape((-1, *base_resolution, conv_channels)),
         ]
     )
-
-
-def _tee(f):
-    def g(x):
-        f(x)
-        return x
-
-    return g
 
 
 def _to_rgb() -> Callable[[jnp.ndarray], jnp.ndarray]:
@@ -135,7 +122,6 @@ def _downsample(x: jnp.ndarray) -> jnp.ndarray:
     """
     Half the resolution of the input NHWC tensor
     """
-    print("downsample", x.shape)
     n, h, w, c = x.shape
     return jax.image.resize(x, shape=(n, h // 2, w // 2, c), method="bilinear")
 
