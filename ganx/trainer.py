@@ -55,7 +55,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         f_l = critic.apply(
             critic_params, generator.apply(generator_params, latent_batch)
         )
-        f_x = critic(img_batch)
+        f_x = critic.apply(critic_params, img_batch)
 
         return jnp.mean(f_l) - jnp.mean(f_x)
 
@@ -116,16 +116,13 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
 def _batch_iter(cfg, dataset) -> Iterable[jnp.ndarray]:
     for b in batch_iterator(cfg.trainer.batch_size, dataset):
-        yield _batch_to_tensor(b)
-
-
-def _batch_to_tensor(batch: Sequence[Image.Image]) -> jnp.ndarray:
-    return jnp.stack([jnp.asarray(img) for img in batch])
+        yield b
 
 
 def _dummy_image(cfg: DictConfig) -> ImgBatch:
-    return jnp.zeros((cfg.trainer.batch_size, *cfg.model.resolution))
+    h, w = cfg.model.base_resolution
+    return jnp.zeros((cfg.trainer.batch_size, h * 2**2, w * 2**2, 3))
 
 
 def _latent_batch(rng: RNG, cfg: DictConfig):
-    random_latent_vectors(rng, cfg.trainer.batch_size, cfg)
+    return random_latent_vectors(rng, cfg.trainer.batch_size, cfg)

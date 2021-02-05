@@ -1,3 +1,5 @@
+import jax.numpy as jnp
+
 from typing import Sequence, Any
 
 import pathlib
@@ -26,4 +28,9 @@ def batch_iterator(batch_size: int, dataset: Sequence[Any]) -> Sequence[Any]:
             batch.append(dataset[k])
 
         i += len(batch)
-        yield batch
+        yield _to_tensor(batch)
+
+
+def _to_tensor(batch: Sequence[Image.Image]) -> jnp.ndarray:
+    x = (1/128 * jnp.stack([jnp.asarray(img) for img in batch]).astype(jnp.float32)) - 1.0
+    return x

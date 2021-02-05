@@ -1,6 +1,9 @@
-import click
 import pathlib
+
+import click
+import jax
 from omegaconf import OmegaConf
+
 from ganx.trainer import train
 
 
@@ -17,7 +20,17 @@ from ganx.trainer import train
     type=click.Path(exists=True, dir_okay=False, file_okay=True),
     help="Path to config",
 )
-def main(config_path: str, root_dir: str) -> None:
+@click.option(
+    "--debug/--no-debug",
+    default=False,
+    type=bool,
+    help="Disable jit for debugging",
+)
+def main(config_path: str, root_dir: str, debug: bool) -> None:
+    if debug:
+        print("Disabling jit")
+        jax.config.update("jax_disable_jit", True)
+
     cfg = OmegaConf.load(config_path)
     print(OmegaConf.to_yaml(cfg))
 
