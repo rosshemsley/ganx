@@ -118,7 +118,9 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 )
 
 
-def _batch_iter(cfg: DictConfig, dataset: Sequence[jnp.ndarray]) -> Iterable[jnp.ndarray]:
+def _batch_iter(
+    cfg: DictConfig, dataset: Sequence[jnp.ndarray]
+) -> Iterable[jnp.ndarray]:
     res = _output_resolution(cfg)
     for b in batch_iterator(cfg.trainer.batch_size, dataset):
         n, _, __, c = b.shape
@@ -132,7 +134,7 @@ def _dummy_image(cfg: DictConfig) -> ImgBatch:
 
 def _output_resolution(cfg: DictConfig) -> Tuple[int, int]:
     h, w = cfg.model.base_resolution
-    return h * 2**2, w * 2**2
+    return h * 2 ** 2, w * 2 ** 2
 
 
 def _latent_batch(rng: RNG, cfg: DictConfig):

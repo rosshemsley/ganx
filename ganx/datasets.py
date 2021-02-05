@@ -32,5 +32,7 @@ def batch_iterator(batch_size: int, dataset: Sequence[Any]) -> Sequence[Any]:
 
 
 def _to_tensor(batch: Sequence[Image.Image]) -> jnp.ndarray:
-    x = (1/128 * jnp.stack([jnp.asarray(img) for img in batch]).astype(jnp.float32)) - 1.0
+    x = (
+        1 / 128 * jnp.stack([jnp.asarray(img) for img in batch]).astype(jnp.float32)
+    ) - 1.0
     return x

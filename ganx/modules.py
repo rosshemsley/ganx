@@ -47,7 +47,9 @@ def random_latent_vectors(key: jnp.ndarray, n: int, cfg: DictConfig) -> jnp.ndar
     return jax.random.normal(key, shape=(n, cfg.model.latent_dims))
 
 
-def _latent_decoder(base_resolution: Tuple[int, int], conv_channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
+def _latent_decoder(
+    base_resolution: Tuple[int, int], conv_channels: int
+) -> Callable[[jnp.ndarray], jnp.ndarray]:
     return hk.Sequential(
         [
             hk.Linear(base_resolution[0] * base_resolution[1] * conv_channels),
@@ -57,6 +59,7 @@ def _latent_decoder(base_resolution: Tuple[int, int], conv_channels: int) -> Cal
             lambda x: x.reshape((-1, *base_resolution, conv_channels)),
         ]
     )
+
 
 def _tee(f):
     def g(x):
