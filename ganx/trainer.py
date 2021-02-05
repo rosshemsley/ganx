@@ -57,6 +57,8 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         )
         f_x = critic.apply(critic_params, img_batch)
 
+        # TODO(Ross): gradient penalty... signs.
+
         return jnp.mean(f_l) - jnp.mean(f_x)
 
     @jax.jit
@@ -107,6 +109,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 generator_params,
                 critic_opt_state,
             )
+
             print("loss", loss)
 
             if batch_idx % cfg.trainer.generator_step == 0:
