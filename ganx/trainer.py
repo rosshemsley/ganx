@@ -160,7 +160,7 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
             writer.add_scalar("loss/loss", loss, global_step)
 
             if batch_idx % 10 == 0:
-                print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
+                print(f"Epoch {epoch} ({batch_idx}/{total_batches})")
 
             if batch_idx % cfg.trainer.generator_step == 0:
                 # TODO(Ross): Implement the line sampling algorithm from the wgan-gp paper.
@@ -168,9 +168,11 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
                 loss, generator_params, generator_opt_state, log = update_generator(
                     latent, generator_params, critic_params, generator_opt_state
                 )
-                # TODO(Ross): make a grid
-                img = 0.5 + 0.5 * jnp.transpose(log["generated_images"][0], (2, 0, 1))
-                writer.add_image("img/geneated", img, global_step)
+
+                if batch_idx % cfg.trainer.generator_step*5 == 0:
+                    # TODO(Ross): make a grid
+                    img = 0.5 + 0.5 * jnp.transpose(log["generated_images"][0], (2, 0, 1))
+                    writer.add_image("img/geneated", img, global_step)
 
             global_step += 1
 
