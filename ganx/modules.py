@@ -50,7 +50,7 @@ def _latent_decoder(
     return hk.Sequential(
         [
             hk.Linear(base_resolution[0] * base_resolution[1] * conv_channels),
-            nn.relu,
+            nn.leaky_relu,
             lambda x: x.reshape((-1, *base_resolution, conv_channels)),
         ]
     )
@@ -89,11 +89,11 @@ def _encode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
             hk.GroupNorm(8),
             _downsample,
             _conv(channels),
-            nn.relu,
+            nn.leaky_relu,
             hk.GroupNorm(8),
             _downsample,
             _conv(channels),
-            nn.relu,
+            nn.leaky_relu,
         ]
     )
 
@@ -104,11 +104,11 @@ def _decode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
             hk.GroupNorm(8),
             _upsample,
             _conv(channels),
-            nn.relu,
+            nn.leaky_relu,
             hk.GroupNorm(8),
             _upsample,
             _conv(channels),
-            nn.relu,
+            nn.leaky_relu,
         ]
     )
 
