@@ -22,6 +22,8 @@ Log = Dict[str, Any]
 
 
 def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
+    # TODO(Ross): Find a way to factor the haiku state out and reduce the function length.
+
     rng = jax.random.PRNGKey(cfg.random_seed)
     dataset = CelebADataset(dataset_path)
 
@@ -140,6 +142,7 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
 
     global_step = 0
     for epoch in range(cfg.trainer.epochs):
+        # TODO(Ross): shuffle the data loader
         for batch_idx, total_batches, img_batch in _batch_iter(cfg, dataset):
             rng, latent = _latent_batch(rng, cfg)
             loss, critic_params, critic_opt_state, log = update_critic(
@@ -151,18 +154,22 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
             )
 
             writer.add_scalar("loss/wasserstein", log["wasserstein"], global_step)
-            writer.add_scalar("loss/gradient_penalty", log["gradient_penalty"], global_step)
+            writer.add_scalar(
+                "loss/gradient_penalty", log["gradient_penalty"], global_step
+            )
             writer.add_scalar("loss/loss", loss, global_step)
 
             if batch_idx % 10 == 0:
                 print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
 
             if batch_idx % cfg.trainer.generator_step == 0:
+                # TODO(Ross): Implement the line sampling algorithm from the wgan-gp paper.
                 rng, latent = _latent_batch(rng, cfg)
                 loss, generator_params, generator_opt_state, log = update_generator(
                     latent, generator_params, critic_params, generator_opt_state
                 )
-                img = 0.5 + 0.5*jnp.transpose(log["generated_images"][0], (2, 0, 1))
+                # TODO(Ross): make a grid
+                img = 0.5 + 0.5 * jnp.transpose(log["generated_images"][0], (2, 0, 1))
                 writer.add_image("img/geneated", img, global_step)
 
             global_step += 1
