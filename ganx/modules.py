@@ -94,6 +94,9 @@ def _encode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
             _downsample,
             _conv(channels),
             nn.leaky_relu,
+            _downsample,
+            _conv(channels),
+            nn.leaky_relu,
         ]
     )
 
@@ -101,6 +104,10 @@ def _encode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
 def _decode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
     return hk.Sequential(
         [
+            hk.GroupNorm(8),
+            _upsample,
+            _conv(channels),
+            nn.leaky_relu,
             hk.GroupNorm(8),
             _upsample,
             _conv(channels),

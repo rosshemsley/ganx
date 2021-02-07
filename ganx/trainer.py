@@ -199,7 +199,7 @@ def _dummy_latent(cfg: DictConfig) -> LatentBatch:
 
 def _output_resolution(cfg: DictConfig) -> Tuple[int, int]:
     h, w = cfg.model.base_resolution
-    return h * 2 ** 2, w * 2 ** 2
+    return h * 2 ** 3, w * 2 ** 3
 
 
 def _latent_batch(rng: RNG, cfg: DictConfig) -> Tuple[RNG, LatentBatch]:

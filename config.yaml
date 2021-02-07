@@ -6,7 +6,7 @@ model:
   base_resolution: [4, 4]
 
 trainer:
-  epochs: 20
+  epochs: 200
   batch_size: 32
   generator_step: 5
 
