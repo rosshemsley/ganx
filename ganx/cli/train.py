@@ -30,6 +30,8 @@ from ganx.trainer import train
 )
 def main(config_path: str, root_dir: str, debug: bool) -> None:
     cfg = OmegaConf.load(config_path)
+    OmegaConf.set_readonly(cfg, True)
+
     print(OmegaConf.to_yaml(cfg))
 
     summary_writer = SummaryWriter()

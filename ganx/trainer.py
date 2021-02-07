@@ -40,7 +40,7 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
     @jax.jit
     def generator_loss(
         generator_params: hk.Params, critic_params: hk.Params, latent_batch: LatentBatch
-    ) -> jnp.ndarray:
+    ) -> Tuple[jnp.ndarray, Log]:
         batch_size = latent_batch.shape[0]
 
         img_gen = generator.apply(generator_params, latent_batch)
@@ -48,7 +48,11 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
 
         assert_shape(f_gen, (batch_size, 1))
 
-        return -jnp.mean(f_gen)
+        log = {
+            "generated_images": img_gen,
+        }
+
+        return -jnp.mean(f_gen), log
 
     @jax.jit
     def critic_loss(
@@ -111,15 +115,15 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
         generator_params: hk.Params,
         critic_params: hk.Params,
         opt_state: OptState,
-    ) -> Tuple[hk.Params, OptState]:
+    ) -> Tuple[hk.Params, OptState, Log]:
 
-        loss, grad = jax.value_and_grad(generator_loss)(
+        (loss, log), grad = jax.value_and_grad(generator_loss, has_aux=True)(
             generator_params, critic_params, latent_batch
         )
         updates, opt_state = generator_opt.update(grad, opt_state)
         new_params = optax.apply_updates(generator_params, updates)
 
-        return loss, new_params, opt_state
+        return loss, new_params, opt_state, log
 
     rng, key = jax.random.split(rng)
     generator_params = generator.init(
@@ -134,6 +138,7 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
     generator_opt_state = generator_opt.init(generator_params)
     critic_opt_state = critic_opt.init(critic_params)
 
+    global_step = 0
     for epoch in range(cfg.trainer.epochs):
         for batch_idx, total_batches, img_batch in _batch_iter(cfg, dataset):
             rng, latent = _latent_batch(rng, cfg)
@@ -145,18 +150,22 @@ def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
                 critic_opt_state,
             )
 
-            writer.add_scalar('loss/wasserstein', log["wasserstein"])
-            writer.add_scalar('loss/gradient_penalty', log["gradient_penalty"])
-            writer.add_scalar('loss/loss', loss)
+            writer.add_scalar("loss/wasserstein", log["wasserstein"], global_step)
+            writer.add_scalar("loss/gradient_penalty", log["gradient_penalty"], global_step)
+            writer.add_scalar("loss/loss", loss, global_step)
 
             if batch_idx % 10 == 0:
                 print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
 
             if batch_idx % cfg.trainer.generator_step == 0:
                 rng, latent = _latent_batch(rng, cfg)
-                loss, generator_params, generator_opt_state = update_generator(
+                loss, generator_params, generator_opt_state, log = update_generator(
                     latent, generator_params, critic_params, generator_opt_state
                 )
+                img = 0.5 + 0.5*jnp.transpose(log["generated_images"][0], (2, 0, 1))
+                writer.add_image("img/geneated", img, global_step)
+
+            global_step += 1
 
 
 def _batch_iter(
