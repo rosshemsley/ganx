@@ -39,12 +39,16 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
     @jax.jit
     def generator_loss(
-        generator_params: hk.Params, latent_batch: LatentBatch
+        generator_params: hk.Params, critic_params: hk.Params, latent_batch: LatentBatch
     ) -> jnp.ndarray:
+        batch_size = latent_batch.shape[0]
 
-        f_l = generator.apply(generator_params, latent_batch)
+        img_gen = generator.apply(generator_params, latent_batch)
+        f_gen = critic.apply(critic_params, img_gen)
 
-        return -jnp.mean(f_l)
+        assert_shape(f_gen, (batch_size, 1))
+
+        return -jnp.mean(f_gen)
 
     @jax.jit
     def critic_loss(
@@ -102,18 +106,26 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
     @jax.jit
     def update_generator(
         latent_batch: LatentBatch,
-        params: hk.Params,
+        generator_params: hk.Params,
+        critic_params: hk.Params,
         opt_state: OptState,
     ) -> Tuple[hk.Params, OptState]:
 
-        loss, grad = jax.value_and_grad(generator_loss)(params, latent_batch)
+        loss, grad = jax.value_and_grad(generator_loss)(
+            generator_params, critic_params, latent_batch
+        )
         updates, opt_state = generator_opt.update(grad, opt_state)
-        new_params = optax.apply_updates(params, updates)
+        new_params = optax.apply_updates(generator_params, updates)
 
         return loss, new_params, opt_state
 
     rng, key = jax.random.split(rng)
-    generator_params = generator.init(key, _dummy_latent(cfg))
+    generator_params = generator.init(
+        key,
+        _dummy_latent(
+            cfg,
+        ),
+    )
     rng, key = jax.random.split(rng)
     critic_params = critic.init(key, _dummy_image(cfg))
 
@@ -137,7 +149,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
             if batch_idx % cfg.trainer.generator_step == 0:
                 rng, latent = _latent_batch(rng, cfg)
                 loss, generator_params, generator_opt_state = update_generator(
-                    latent, generator_params, generator_opt_state
+                    latent, generator_params, critic_params, generator_opt_state
                 )
 
 

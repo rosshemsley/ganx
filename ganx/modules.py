@@ -86,9 +86,11 @@ def _from_rgb(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
 def _encode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
     return hk.Sequential(
         [
+            hk.GroupNorm(8),
             _downsample,
             _conv(channels),
             nn.relu,
+            hk.GroupNorm(8),
             _downsample,
             _conv(channels),
             nn.relu,
@@ -99,9 +101,11 @@ def _encode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
 def _decode(channels: int) -> Callable[[jnp.ndarray], jnp.ndarray]:
     return hk.Sequential(
         [
+            hk.GroupNorm(8),
             _upsample,
             _conv(channels),
             nn.relu,
+            hk.GroupNorm(8),
             _upsample,
             _conv(channels),
             nn.relu,

@@ -28,7 +28,8 @@ def batch_iterator(batch_size: int, dataset: Sequence[Any]) -> Sequence[Any]:
             batch.append(dataset[k])
 
         i += len(batch)
-        yield _to_tensor(batch)
+        if len(batch) == batch_size:
+            yield _to_tensor(batch)
 
 
 def _to_tensor(batch: Sequence[Image.Image]) -> jnp.ndarray:
