@@ -1,8 +1,10 @@
 import pathlib
+from datetime import datetime
 
 import click
 import jax
 from omegaconf import OmegaConf
+from tensorboardX import SummaryWriter
 
 from ganx.trainer import train
 
@@ -30,7 +32,8 @@ def main(config_path: str, root_dir: str, debug: bool) -> None:
     cfg = OmegaConf.load(config_path)
     print(OmegaConf.to_yaml(cfg))
 
-    train(cfg, pathlib.Path(root_dir))
+    summary_writer = SummaryWriter()
+    train(cfg, pathlib.Path(root_dir), summary_writer)
 
 
 if __name__ == "__main__":

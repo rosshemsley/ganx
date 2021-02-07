@@ -567,6 +567,19 @@ python-versions = "*"
 version = "1.8.0"
 
 [[package]]
+category = "main"
+description = "TensorBoardX lets you watch Tensors Flow without Tensorflow"
+name = "tensorboardx"
+optional = false
+python-versions = "*"
+version = "2.1"
+
+[package.dependencies]
+numpy = "*"
+protobuf = ">=3.8.0"
+six = "*"
+
+[[package]]
 category = "dev"
 description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
@@ -644,7 +657,7 @@ version = "0.36.2"
 test = ["pytest (>=3.0.0)", "pytest-cov"]
 
 [metadata]
-content-hash = "889904c4bf4330f85243a735b087c25360538febe3fb5ce4c997536b0f190847"
+content-hash = "58b538282d10477eb92f54a2c95a09bc8f19d7ec4ac29a33a9e43dea3982a5bf"
 python-versions = "^3.8"
 
 [metadata.files]
@@ -1068,6 +1081,10 @@ tensorboard = [
 ]
 tensorboard-plugin-wit = [
     {file = "tensorboard_plugin_wit-1.8.0-py3-none-any.whl", hash = "sha256:2a80d1c551d741e99b2f197bb915d8a133e24adb8da1732b840041860f91183a"},
+]
+tensorboardx = [
+    {file = "tensorboardX-2.1-py2.py3-none-any.whl", hash = "sha256:2d81c10d9e3225dcd9bb5fb277588610bdf45317603e7682f6953d83b5b38f6a"},
+    {file = "tensorboardX-2.1.tar.gz", hash = "sha256:9e8907cf2ab900542d6cb72bf91aa87b43005a7f0aa43126268697e3727872f9"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},

@@ -1,6 +1,6 @@
 from typing import Any, Dict, Iterable, Sequence, Tuple
 
-
+from tensorboardX import SummaryWriter
 from chex import assert_shape
 import optax
 import jax
@@ -21,7 +21,7 @@ RNG = jnp.ndarray
 Log = Dict[str, Any]
 
 
-def train(cfg: DictConfig, dataset_path: Path) -> None:
+def train(cfg: DictConfig, dataset_path: Path, writer: SummaryWriter) -> None:
     rng = jax.random.PRNGKey(cfg.random_seed)
     dataset = CelebADataset(dataset_path)
 
@@ -65,6 +65,8 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
             return critic.apply(critic_params, x)
 
         f_real = f(img_batch)
+
+        # Use the vector-jacobian product to efficiently compute the grad for each f_i.
         f_gen, grad_fn = jax.vjp(f, img_generated)
         grad = grad_fn(jnp.ones(f_gen.shape))[0]
 
@@ -142,6 +144,10 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 generator_params,
                 critic_opt_state,
             )
+
+            writer.add_scalar('loss/wasserstein', log["wasserstein"])
+            writer.add_scalar('loss/gradient_penalty', log["gradient_penalty"])
+            writer.add_scalar('loss/loss', loss)
 
             if batch_idx % 10 == 0:
                 print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
