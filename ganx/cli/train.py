@@ -27,10 +27,6 @@ from ganx.trainer import train
     help="Disable jit for debugging",
 )
 def main(config_path: str, root_dir: str, debug: bool) -> None:
-    if debug:
-        print("Disabling jit")
-        jax.config.update("jax_disable_jit", True)
-
     cfg = OmegaConf.load(config_path)
     print(OmegaConf.to_yaml(cfg))
 
