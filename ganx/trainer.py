@@ -72,15 +72,15 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         gp = jnp.square(1 - jnp.linalg.norm(flat_grad, axis=1))
         assert_shape(gp, (batch_size,))
 
-        wasserstein_distance = jnp.mean(f_gen) - jnp.mean(f_real)
+        loss = jnp.mean(f_gen) - jnp.mean(f_real)
         gradient_penalty = jnp.mean(gp)
 
         log = {
-            "wasserstein": wasserstein_distance,
+            "wasserstein": -loss,
             "gradient_penalty": gradient_penalty,
         }
 
-        return wasserstein_distance + 10*gradient_penalty, log
+        return loss + 10*gradient_penalty, log
 
     @jax.jit
     def update_critic(
@@ -114,7 +114,6 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
 
     rng, key = jax.random.split(rng)
     generator_params = generator.init(key, _dummy_latent(cfg))
-
     rng, key = jax.random.split(rng)
     critic_params = critic.init(key, _dummy_image(cfg))
 
@@ -132,10 +131,10 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 critic_opt_state,
             )
 
-            print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
+            if batch_idx %10 == 0:
+                print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
 
             if batch_idx % cfg.trainer.generator_step == 0:
-                print("generator step")
                 rng, latent = _latent_batch(rng, cfg)
                 loss, generator_params, generator_opt_state = update_generator(
                     latent, generator_params, generator_opt_state
