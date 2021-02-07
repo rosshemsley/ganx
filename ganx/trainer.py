@@ -80,7 +80,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
             "gradient_penalty": gradient_penalty,
         }
 
-        return loss + 10*gradient_penalty, log
+        return loss + 10 * gradient_penalty, log
 
     @jax.jit
     def update_critic(
@@ -91,9 +91,9 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
         opt_state: OptState,
     ) -> Tuple[hk.Params, OptState, Log]:
 
-        (loss, log), grad,  = jax.value_and_grad(critic_loss, has_aux=True)(
-            critic_params, generator_params, img_batch, latent_batch
-        )
+        (loss, log), grad, = jax.value_and_grad(
+            critic_loss, has_aux=True
+        )(critic_params, generator_params, img_batch, latent_batch)
         updates, opt_state = critic_opt.update(grad, opt_state)
         new_params = optax.apply_updates(critic_params, updates)
 
@@ -131,7 +131,7 @@ def train(cfg: DictConfig, dataset_path: Path) -> None:
                 critic_opt_state,
             )
 
-            if batch_idx %10 == 0:
+            if batch_idx % 10 == 0:
                 print(f"({batch_idx}/{total_batches}) loss: {loss}, {log}")
 
             if batch_idx % cfg.trainer.generator_step == 0:
